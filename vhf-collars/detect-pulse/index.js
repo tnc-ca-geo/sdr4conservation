@@ -2,13 +2,16 @@
 const { execFile } = require('child_process');
 const moment = require('moment');
 
+// testing including NPM package
 const timeNow = moment().format('MMMM Do YYYY, h:mm:ss a');
 console.log('Time now: ', timeNow);
 
-const child = execFile('./SDR4space-light_x86.AppImage', ['-f', 'index.js'], (error, stdout, stderr) => {
+// Spawn child process
+const file = './SDR4space-light_x86.AppImage';
+const args = ['-f', 'detect-pulse.js'];
+const child = execFile(file, args, (error, stdout, stderr) => {
   if (error) {
     throw error;
   }
   console.log(stdout);
 });
-// end test

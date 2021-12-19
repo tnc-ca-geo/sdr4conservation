@@ -1,3 +1,9 @@
+// Testing const & requiring node module:
+const moment = require('moment');
+const timeNow = moment().format('MMMM Do YYYY, h:mm:ss a');
+print('Time now: ', timeNow);
+// end test
+
 load('./decompose.js');
 load('./create-html.js');
 

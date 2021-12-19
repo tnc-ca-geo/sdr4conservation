@@ -1,3 +1,6 @@
+# AppImage files
+*.AppImage
+
 # Logs
 logs
 *.log

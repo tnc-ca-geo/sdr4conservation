@@ -4,6 +4,7 @@ var INPUT_FILE_PATH = '/home/nathanielrindlaub/Documents/sample-recordings/gqrx_
 var INPUT_SR = 1.8e6;
 var NUM_BANDS = 4;
 var CENTER_FREQ = 166.3068;
+var FFT_SIZE = 4096;  // # of bins for FFT. Should be multiple of 2
 var GNU_PLOT_CMD = {
     'command' : '/usr/bin/gnuplot', 
     'args' : ['./spectrum.gnu']
@@ -27,14 +28,8 @@ samples.dump();
 
 
 // "Decomposing" the input into NUM_BANDS separate channels
-// each resulting channel will have SR of the INPUT_SR / NUM_BANDS (450 kS/s here)
-
-// QUESTION: I don't really understand what's happening here. 
-// decomposing seems to have the effect of splitting the input along the frequency domain
-// into smaller channels, but I don't understand why that is. 
-// Does it have to do with Nyquist zones??
-// (i.e., resampling at a lower rate will break the input file up into smaller Nyquist Zones,
-// and each zone is saved as a new channel?)
+// each resulting channel will have SR of the INPUT_SR / NUM_BANDS (450 kS/s)
+// under the hood using a "Polyphase Filter bank"
 var channels = DSP.decompose(samples, NUM_BANDS, 0);
 print(channels.length);
 
@@ -46,16 +41,17 @@ for (var z = 0; z < NUM_BANDS; z++) {
     print('Channel : ', z);
     var channel = channels[z];
     channel.dump();
-    channel.saveToFile('/tmp/subband_'+ z + '.cs16'); // QUESTON: why .cs16 extension?
+    channel.saveToFile('/tmp/subband_'+ z + '.cs16');
     var fileSize = IO.getfsize('/tmp/subband_'+ z + '.cs16');
     print('Channel saved to /tmp/subband_'+ z + '.cs16' + ' -- file size: ' + fileSize);
     print('***********************************');
 
     // build csv's
     var value = '';
-    var spectrum = channel.getPowerSpectrum(4096);  // gets FFT
+    var spectrum = channel.getPowerSpectrum(FFT_SIZE);
     for (var a = 0 ; a < spectrum.spectrum.length; a++) {
-        value += JSON.stringify(spectrum.frequencies[a]) + ',' + JSON.stringify(spectrum.spectrum[a]) + '\n';
+        value += JSON.stringify(spectrum.frequencies[a]) + ',' + 
+                 JSON.stringify(spectrum.spectrum[a]) + '\n';
     }
     IO.fappend('/tmp/spectrum.csv', value);
     IO.fappend('/tmp/fullband.csv', value);
